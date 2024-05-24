@@ -1,4 +1,5 @@
 using Data.Contexts;
+using Data.Entities;
 using FileProvider.Services;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -19,7 +20,23 @@ namespace FileProvider.Functions
             {
                 if (req.Form.Files["file"] is IFormFile file)
                 {
-                    await _fileService.SetBlobContainerAsync("");
+
+                    var containerName = !string.IsNullOrEmpty(req.Query["containerName"]) ? req.Query["containerName"].ToString() : "files";
+
+
+                    var fileEntity = new FileEntity
+                    {
+                        FileName = _fileService.SetFileName(file),
+                        ContentType = file.ContentType,
+                        ContainerName = containerName
+                    };
+
+                    await _fileService.SetBlobContainerAsync(fileEntity.ContainerName);
+                    var filePath = await _fileService.UploadFileAsync(file, fileEntity);
+                    fileEntity.FilePath = filePath;
+
+                    await _fileService.SaveToDatabaseAsync(fileEntity);
+                    return new OkObjectResult(fileEntity);
                 }
             }
 
