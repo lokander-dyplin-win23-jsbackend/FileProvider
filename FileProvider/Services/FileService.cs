@@ -13,12 +13,12 @@ public class FileService(DataContext context, ILogger<FileService> logger, BlobS
     private readonly ILogger<FileService> _logger = logger;
     private readonly DataContext _context = context;
     private readonly BlobServiceClient _client = client;
-    private BlobContainerClient _container;
+    private BlobContainerClient? _container;
 
     public async Task SetBlobContainerAsync(string containerName)
     {
          _container = _client.GetBlobContainerClient(containerName);
-        await _container.CreateIfNotExistsAsync();
+        await _container.CreateIfNotExistsAsync(PublicAccessType.BlobContainer);
     }
 
     public string SetFileName(IFormFile file)
